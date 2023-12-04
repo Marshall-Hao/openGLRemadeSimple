@@ -36,6 +36,7 @@ GT::Image* _zoomImageSimple = NULL;
 float _angle = 0.0f;
 float _xCam = 0.0f;
 float _zRun = 0.0f;
+float _sumX = 0.0f;
 float speed = 0.01;
 // 此代码模块中包含的函数的前向声明:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -219,7 +220,7 @@ void Render()
     //         {600.0f,150.0f,GT::RGBA(0,0,255),GT::floatV2(1.0,1.0)}
     //      }
 
-    GT::Point ptArray[] =
+ /*   GT::Point ptArray[] =
     {
         {0.0f,0.0f,0.0f,       GT::RGBA(255,0,0) , GT::floatV2(0,0)},
         {300.0f,0.0f,0.0f,    GT::RGBA(0,255,0) , GT::floatV2(1.0,0)},
@@ -229,7 +230,24 @@ void Render()
         {300.0f,300.0f,0.0f,    GT::RGBA(0,255,0) , GT::floatV2(0.0,0)},
         {300.0f,0.0f,-500.0f,   GT::RGBA(0,0,255) , GT::floatV2(0.0,0.0)},
         
+    };*/
+
+    GT::Point ptArray1[] =
+    {
+        {0.0f,0.0f,0.0f,       GT::RGBA(255,0,0) , GT::floatV2(0,0)},
+        {300.0f,0.0f,0.0f,    GT::RGBA(0,255,0) , GT::floatV2(1.0,0)},
+        {300.0f,300.0f,0.0f,   GT::RGBA(0,0,255) , GT::floatV2(1.0,1.0)},
     };
+
+    GT::Point ptArray2[] =
+    {
+        {300.0f,0.0f,0.0f,       GT::RGBA(255,0,0) , GT::floatV2(0,0)},
+        {600.0f,0.0f,0.0f,    GT::RGBA(0,255,0) , GT::floatV2(0,0)},
+        {600.0f,300.0f,0.0f,   GT::RGBA(0,0,255) , GT::floatV2(0,0)},
+    };
+
+
+
     //VP变换
     glm::mat4 vMat(1.0f);
     vMat = glm::lookAt(glm::vec3(0, 0, 1000), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
@@ -252,6 +270,10 @@ void Render()
 
     _canvas->gtLoadMatrix(pMat);
 
+    // turn on texture
+    _canvas->enableTexture(true);
+    _canvas->bindTexture(_bkImage);
+
    /* for (int i = 0;i < 6;i++)
     {*/
         /*glm::vec4 ptv4(ptArray[i].m_x, ptArray[i].m_y, 0.0f, 1.0f);
@@ -267,38 +289,68 @@ void Render()
  //       glm::vec4 ptv4(ptArray[i].m_x, ptArray[i].m_y, ptArray[i].m_z, 1);
 
 
-        glm::mat4 mMat(1.0f);
-        mMat = glm::translate(mMat, glm::vec3(-300, 0, 0));
+        //glm::mat4 mMat(1.0f);
+        //mMat = glm::translate(mMat, glm::vec3(-300, 0, 0));
 
-        glm::mat4 rMat(1.0f);
-        // xyz
-        rMat = glm::rotate(rMat, glm::radians(_angle), glm::vec3(0, 1, 0));
-        rMat = glm::rotate(rMat, glm::radians(50.0f), glm::vec3(1, 0, 0));
+        //glm::mat4 rMat(1.0f);
+        //// xyz
+        //rMat = glm::rotate(rMat, glm::radians(_angle), glm::vec3(0, 1, 0));
+        //rMat = glm::rotate(rMat, glm::radians(50.0f), glm::vec3(1, 0, 0));
    
  
 
 
-    _canvas->gtMatrixMode(GT::MatrixMode::GT_MODEL);
+  /*  _canvas->gtMatrixMode(GT::MatrixMode::GT_MODEL);
     _canvas->gtLoadIdentity();
     _canvas->gtMulplyMatrix(mMat);
-    _canvas->gtMulplyMatrix(rMat);
+    _canvas->gtMulplyMatrix(rMat);*/
 
   
     
 
-    _angle += 0.2f;
- 
+    /*angle += 0.2f;*/
+    
+    // overall transform
+    glm::mat4 sumMat(1.0f);
+    sumMat = glm::translate(sumMat,glm::vec3(_sumX, 0, _zRun));
+    _sumX += 0.5;
+
+    _canvas->gtMatrixMode(GT::MatrixMode::GT_MODEL);
+    _canvas->gtLoadIdentity();
+    _canvas->gtMulplyMatrix(sumMat);
+
+    // save the current moving matrix
+    _canvas->gtPushMatrix();
+
+    // matrix for triangle 1
+    _canvas->gtLoadIdentity();
+    glm::mat4 tMat1(1.0f);
+    tMat1= glm::translate(tMat1, glm::vec3(-300, 0, 0));
+    glm::mat4 rMat1(1.0f);
+    rMat1 = glm::rotate(rMat1, glm::radians(_angle), glm::vec3(0, 1, 0));
+    _angle += 0.2;
+
+   _canvas->gtMulplyMatrix(tMat1);
+   _canvas->gtMulplyMatrix(rMat1);
+   _canvas->gtMulplyMatrix(sumMat);
+
+
 
 
     // draw
-    _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point),(unsigned char*)ptArray);
-    _canvas->gtColorPoionter(4, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)&ptArray[0].m_color);
-    _canvas->gtTexCoordPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)&ptArray[0].m_uv);
+    _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point),(unsigned char*)ptArray1);
+    _canvas->gtColorPoionter(4, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)&ptArray1[0].m_color);
+    _canvas->gtTexCoordPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)&ptArray1[0].m_uv);
+    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 3);
 
-    /*_canvas->gtDrawArray(GT::GT_LINE, 0, 5);*/
-    _canvas->enableTexture(true);
-    _canvas->bindTexture(_bkImage);
-    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 6);
+    // martix for triangle 2
+    
+    // restore the current moving matrix
+    _canvas->gtPopMatrix();
+    _canvas->gtVertexPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)ptArray2);
+    _canvas->gtColorPoionter(4, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)&ptArray2[0].m_color);
+    _canvas->gtTexCoordPointer(2, GT::GT_FLOAT, sizeof(GT::Point), (unsigned char*)&ptArray2[0].m_uv);
+    _canvas->gtDrawArray(GT::GT_TRIANGLE, 0, 3);
 
     BitBlt(hDC, 0, 0, wWidth, wHeight, hMem, 0, 0, SRCCOPY);
 }
